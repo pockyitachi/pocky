@@ -1,0 +1,44 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+#stage {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+#menu {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: rgba(255, 252, 245, 0.96);
+  border: 1px solid #e8d9bd;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(60, 40, 20, 0.18);
+  font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+#menu[hidden] {
+  display: none;
+}
+
+#menu button {
+  border: none;
+  background: transparent;
+  padding: 6px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #4a3222;
+  cursor: pointer;
+  text-align: left;
+}
+
+#menu button:hover {
+  background: #f4e3c8;
+}

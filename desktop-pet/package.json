@@ -1,0 +1,12 @@
+{
+  "name": "pocky-desktop-pet",
+  "version": "0.1.0",
+  "description": "Pocky —— 住在电脑里的狗狗",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
