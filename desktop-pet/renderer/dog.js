@@ -14,11 +14,15 @@
  *   opts.scale       整体缩放
  */
 (function () {
-  const FUR = '#E8A05C';
-  const FUR_DARK = '#C9853F';
-  const CREAM = '#F9EBD2';
-  const INK = '#3E2A1A';
-  const BLUSH = 'rgba(240,120,120,0.35)';
+  // 按 Pocky 本人的配色（data/photos/IMG_2493.jpeg）：
+  // 奶白色蓬毛，耳朵/头顶/背部带浅杏色，脸和胸腹近白
+  const FUR = '#F2E9D8';       // 奶白主体
+  const FUR_DARK = '#E0D2B8';  // 远侧腿 / 背光面
+  const APRICOT = '#EFD3A0';   // 杏色：耳朵、头顶、背部、尾巴
+  const CREAM = '#FDFBF6';     // 脸颊、胸、肚、爪尖（近白）
+  const INK = '#2E2620';
+  const EAR_PINK = '#E9B8AC';
+  const BLUSH = 'rgba(240,140,140,0.30)';
   const TONGUE = '#E88A8A';
 
   function ellipse(ctx, x, y, rx, ry, color, rot) {
@@ -46,21 +50,21 @@
     roundRect(ctx, hipX - 5 + swing, hipY, 11, -hipY - lift, 5, color);
   }
 
-  // 卷起来的柴犬尾巴，base 在身体后上方
+  // 大蓬卷尾（Pocky 的尾巴比柴犬更蓬），base 在身体后上方
   function tail(ctx, bx, by, wag) {
     ctx.save();
     ctx.translate(bx, by);
     ctx.rotate(-0.3 + wag);
-    ctx.strokeStyle = FUR;
-    ctx.lineWidth = 11;
+    ctx.strokeStyle = APRICOT;
+    ctx.lineWidth = 16;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.arc(-6, -12, 12, Math.PI * 0.4, Math.PI * 1.9);
+    ctx.arc(-7, -13, 14, Math.PI * 0.4, Math.PI * 1.9);
     ctx.stroke();
     ctx.strokeStyle = CREAM;
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 8;
     ctx.beginPath();
-    ctx.arc(-6, -12, 12, Math.PI * 0.55, Math.PI * 1.4);
+    ctx.arc(-7, -13, 14, Math.PI * 0.5, Math.PI * 1.45);
     ctx.stroke();
     ctx.restore();
   }
@@ -69,14 +73,14 @@
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(lean);
-    ctx.fillStyle = FUR;
+    ctx.fillStyle = APRICOT;
     ctx.beginPath();
     ctx.moveTo(-9, 4);
     ctx.quadraticCurveTo(-3, -20, 4, -18);
     ctx.quadraticCurveTo(11, -6, 9, 6);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#F3C99A';
+    ctx.fillStyle = EAR_PINK;
     ctx.beginPath();
     ctx.moveTo(-4, 2);
     ctx.quadraticCurveTo(-1, -12, 3, -11);
@@ -95,13 +99,15 @@
     ear(ctx, -14, -20, -0.25);
     ear(ctx, 10, -22, 0.2);
 
-    // 头
+    // 头（两侧加蓬毛，脸更圆）
     ellipse(ctx, 0, 0, 25, 22, FUR);
-    // 脸颊 / 口吻部
+    ellipse(ctx, -17, 5, 10, 9, FUR);
+    // 头顶杏色
+    ellipse(ctx, -1, -13, 17, 10, APRICOT);
+    // 脸颊 / 口吻部（近白）
     ellipse(ctx, 12, 7, 15, 11, CREAM);
-    ellipse(ctx, -2, 10, 12, 9, CREAM);
-    // 眉斑
-    ellipse(ctx, 9, -13, 3, 2, CREAM);
+    ellipse(ctx, -2, 10, 13, 10, CREAM);
+    ellipse(ctx, -15, 4, 9, 8, CREAM);
 
     // 鼻子
     ellipse(ctx, 24, 2, 4, 3.2, INK);
@@ -142,30 +148,35 @@
     const p = o.legPhase || 0;
     const bob = moving ? Math.sin(p * 2) * 1.5 : Math.sin(o.breath || 0) * 1;
 
-    tail(ctx, -36, -66 + bob, o.tailWag || 0);
+    tail(ctx, -38, -70 + bob, o.tailWag || 0);
     // 远侧两条腿（深色，错开一点让四条腿都看得见）
     leg(ctx, -31, -44, p + Math.PI, FUR_DARK, moving);
     leg(ctx, 14, -44, p, FUR_DARK, moving);
-    // 身体
-    ellipse(ctx, 0, -54 + bob, 42, 26, FUR);
-    ellipse(ctx, 8, -44 + bob, 24, 13, CREAM);
+    // 身体（蓬毛，比例更圆润）
+    ellipse(ctx, 0, -54 + bob, 46, 29, FUR);
+    // 背部杏色
+    ellipse(ctx, -6, -70 + bob, 33, 12, APRICOT);
+    ellipse(ctx, 4, -42 + bob, 22, 11, CREAM);
     // 近侧两条腿
     leg(ctx, -18, -46, p, FUR, moving);
     leg(ctx, 27, -46, p + Math.PI, FUR, moving);
+    // 胸前蓬毛（贴着脖子下方）
+    ellipse(ctx, 35, -62 + bob, 10, 13, CREAM);
 
-    head(ctx, 44, -86 + bob, o, moving ? Math.sin(p) * 0.04 : 0);
+    head(ctx, 44, -88 + bob, o, moving ? Math.sin(p) * 0.04 : 0);
   }
 
   function drawSit(ctx, o) {
     const bob = Math.sin(o.breath || 0) * 1;
 
-    tail(ctx, -32, -40, o.tailWag || 0);
-    // 后腿蜷坐
-    ellipse(ctx, -16, -26, 27, 26, FUR);
-    ellipse(ctx, 4, -5, 13, 5.5, '#DE9A50'); // 搭在地上的后脚
-    // 躯干斜向上
+    tail(ctx, -34, -42, o.tailWag || 0);
+    // 后腿蜷坐（蓬毛）
+    ellipse(ctx, -16, -26, 29, 27, FUR);
+    ellipse(ctx, 4, -5, 13, 5.5, FUR_DARK); // 搭在地上的后脚
+    // 躯干斜向上 + 背部杏色
     ellipse(ctx, 8, -52 + bob, 30, 25, FUR, -0.5);
-    ellipse(ctx, 16, -42 + bob, 16, 14, CREAM, -0.5);
+    ellipse(ctx, -2, -60 + bob, 20, 10, APRICOT, -0.55);
+    ellipse(ctx, 16, -42 + bob, 17, 15, CREAM, -0.5);
     // 前腿立直
     roundRect(ctx, 12, -50, 11, 50, 5, FUR_DARK);
     roundRect(ctx, 25, -48, 11, 48, 5, FUR);
@@ -176,10 +187,11 @@
   function drawLie(ctx, o) {
     const br = 1 + Math.sin(o.breath || 0) * 0.045;
 
-    tail(ctx, -38, -20, (o.tailWag || 0) * 0.4);
-    // 趴平的身体
-    ellipse(ctx, -4, -18 * br, 44, 17 * br, FUR);
-    ellipse(ctx, 0, -12, 26, 8, CREAM);
+    tail(ctx, -40, -22, (o.tailWag || 0) * 0.4);
+    // 趴平的身体（蓬毛）+ 背部杏色
+    ellipse(ctx, -4, -18 * br, 46, 18 * br, FUR);
+    ellipse(ctx, -8, -28 * br, 34, 8, APRICOT);
+    ellipse(ctx, 0, -12, 27, 8, CREAM);
     // 前爪伸出来
     roundRect(ctx, 26, -10, 26, 9, 4.5, FUR);
     roundRect(ctx, 22, -16, 24, 9, 4.5, FUR_DARK);
@@ -192,11 +204,12 @@
     const bob = Math.sin(o.breath || 0) * 1;
     const wave = Math.sin((o.breath || 0) * 3) * 0.15;
 
-    tail(ctx, -32, -40, o.tailWag || 0);
-    ellipse(ctx, -16, -26, 27, 26, FUR);
-    ellipse(ctx, 4, -5, 13, 5.5, '#DE9A50');
+    tail(ctx, -34, -42, o.tailWag || 0);
+    ellipse(ctx, -16, -26, 29, 27, FUR);
+    ellipse(ctx, 4, -5, 13, 5.5, FUR_DARK);
     ellipse(ctx, 8, -52 + bob, 30, 25, FUR, -0.5);
-    ellipse(ctx, 16, -42 + bob, 16, 14, CREAM, -0.5);
+    ellipse(ctx, -2, -60 + bob, 20, 10, APRICOT, -0.55);
+    ellipse(ctx, 16, -42 + bob, 17, 15, CREAM, -0.5);
     // 远侧前腿撑地
     roundRect(ctx, 12, -50, 11, 50, 5, FUR_DARK);
     // 近侧前爪抬起（朝前上方伸出）
