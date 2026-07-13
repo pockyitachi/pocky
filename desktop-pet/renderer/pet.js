@@ -104,7 +104,8 @@
     dog.pose =
       state === 'walk' || state === 'greet' ? 'walk'
       : state === 'sit' ? 'sit'
-      : state === 'sleep' ? 'lie'
+      : state === 'shake' ? 'shake'
+      : state === 'sleep' || state === 'lie' ? 'lie'
       : 'stand';
     dog.eyesClosed = state === 'sleep';
     if (state === 'walk' || state === 'greet') {
@@ -279,10 +280,11 @@
     return mx >= b.left && mx <= b.left + b.width && my >= b.top && my <= b.top + b.height;
   };
 
-  // 鼠标穿透控制：只有指到狗（或菜单开着）时窗口才接收鼠标
+  // 鼠标穿透控制：只有指到狗（或菜单/聊天面板开着）时窗口才接收鼠标
+  const chatEl = document.getElementById('chat');
   let lastOver = false;
   document.addEventListener('mousemove', (e) => {
-    const over = overDog(e.clientX, e.clientY) || !menu.hidden;
+    const over = overDog(e.clientX, e.clientY) || !menu.hidden || !chatEl.hidden;
     if (over !== lastOver) {
       lastOver = over;
       window.petAPI?.setIgnoreMouse(!over);
@@ -301,13 +303,46 @@
     if (memory.pets % 10 === 0) say('最喜欢你了！');
   }
 
+  function playBark() {
+    // 放真实录音：把 Pocky 的叫声放到 assets/bark.mp3 即可
+    try { new Audio('assets/bark.mp3').play().catch(() => {}); } catch (_) {}
+  }
+
   function bark() {
     say('汪汪！', 1.5);
     dog.tailSpeed = 7;
     dog.happy = true;
     dog.happyT = 1.5;
-    // 放真实录音：把 Pocky 的叫声放到 assets/bark.mp3 即可
-    try { new Audio('assets/bark.mp3').play().catch(() => {}); } catch (_) {}
+    playBark();
+  }
+
+  // 大脑（brain.js）的输出通过这里变成具体行为
+  function performAction(action, bubbleText, sound) {
+    if (bubbleText) say(bubbleText, 3);
+    if (sound === 'bark') playBark();
+    switch (action) {
+      case 'sit': setState('sit', 6); break;
+      case 'shake':
+        setState('shake', 4);
+        dog.happy = true; dog.happyT = 4; dog.tailSpeed = 6;
+        break;
+      case 'lie': setState('lie', 8); break;
+      case 'sleep': setState('sleep', 30); break;
+      case 'come': setState('greet', 30); break;
+      case 'walk': setState('walk', 30); break;
+      case 'bark':
+        dog.happy = true; dog.happyT = 2; dog.tailSpeed = 7;
+        if (dog.state === 'sleep') setState('idle', 3);
+        break;
+      case 'wag':
+        dog.happy = true; dog.happyT = 3; dog.tailSpeed = 8;
+        emit('heart', 3, dog.x, GROUND - 120);
+        if (dog.state === 'sleep') setState('idle', 4);
+        break;
+      default:
+        setState('idle', 3);
+    }
+    memory.affection += 1;
   }
 
   function feed() {
@@ -368,8 +403,21 @@
     menu.hidden = true;
     if (act === 'pet') petTheDog();
     else if (act === 'feed') feed();
+    else if (act === 'talk') window.openPockyChat?.();
     else if (act === 'nap') setState('sleep', 30);
     else if (act === 'status') showStatus();
     else if (act === 'quit') { saveMemory(); window.petAPI?.quit(); }
   });
+
+  // 给大脑（brain.js）用的接口
+  window.pocky = {
+    performAction,
+    say,
+    getStatus: () => ({
+      affection: memory.affection,
+      pets: memory.pets,
+      days: companionDays(),
+      state: dog.state,
+    }),
+  };
 })();

@@ -187,6 +187,29 @@
     head(ctx, 36, -32, o, 0.12);
   }
 
+  // 握手：坐姿 + 抬起前爪轻轻晃
+  function drawShake(ctx, o) {
+    const bob = Math.sin(o.breath || 0) * 1;
+    const wave = Math.sin((o.breath || 0) * 3) * 0.15;
+
+    tail(ctx, -32, -40, o.tailWag || 0);
+    ellipse(ctx, -16, -26, 27, 26, FUR);
+    ellipse(ctx, 4, -5, 13, 5.5, '#DE9A50');
+    ellipse(ctx, 8, -52 + bob, 30, 25, FUR, -0.5);
+    ellipse(ctx, 16, -42 + bob, 16, 14, CREAM, -0.5);
+    // 远侧前腿撑地
+    roundRect(ctx, 12, -50, 11, 50, 5, FUR_DARK);
+    // 近侧前爪抬起（朝前上方伸出）
+    ctx.save();
+    ctx.translate(24, -46);
+    ctx.rotate(-2.0 + wave);
+    roundRect(ctx, -5.5, 0, 11, 40, 5, FUR);
+    ellipse(ctx, 0, 40, 7, 6, CREAM);
+    ctx.restore();
+
+    head(ctx, 36, -92 + bob, o, 0.08);
+  }
+
   window.drawDog = function (ctx, o) {
     const s = o.scale || 1;
     ctx.save();
@@ -198,6 +221,7 @@
 
     ctx.scale((o.dir || 1) * s, s);
     if (o.pose === 'sit') drawSit(ctx, o);
+    else if (o.pose === 'shake') drawShake(ctx, o);
     else if (o.pose === 'lie') drawLie(ctx, o);
     else drawStandWalk(ctx, o);
     ctx.restore();

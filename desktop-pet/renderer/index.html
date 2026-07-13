@@ -3,11 +3,34 @@
 <link rel="stylesheet" href="style.css" />
 <canvas id="stage"></canvas>
 <div id="menu" hidden>
+  <button data-act="talk">和他说话</button>
   <button data-act="pet">摸摸头</button>
   <button data-act="feed">喂零食</button>
   <button data-act="nap">去睡觉</button>
   <button data-act="status">看看状态</button>
   <button data-act="quit" id="quitBtn">退出</button>
 </div>
+<div id="chat" hidden>
+  <div id="chatHeader"><span>和 Pocky 说话 🐕</span><button id="chatClose">×</button></div>
+  <div id="chatLog"></div>
+  <form id="chatForm">
+    <input id="chatInput" autocomplete="off" placeholder="说点什么，或下口令：坐下 / 握手 / 过来…" />
+    <button type="submit">发送</button>
+  </form>
+  <details id="brainSettings">
+    <summary>大脑设置</summary>
+    <label>Claude API Key（可选）<input id="apiKey" type="password" placeholder="sk-ant-..." /></label>
+    <label>模型
+      <select id="modelSel">
+        <option value="claude-opus-4-8">claude-opus-4-8（默认，最聪明）</option>
+        <option value="claude-haiku-4-5">claude-haiku-4-5（更便宜快速）</option>
+      </select>
+    </label>
+    <label>性格档案<textarea id="personality" rows="4"></textarea></label>
+    <button type="button" id="saveBrain">保存</button>
+    <p class="hint">不填 Key 也能玩：Pocky 会用内置口令理解（坐下/握手/趴下/睡觉/过来）。填了 Key 后他会真正"思考"怎么回应你。</p>
+  </details>
+</div>
 <script src="dog.js"></script>
 <script src="pet.js"></script>
+<script src="brain.js"></script>

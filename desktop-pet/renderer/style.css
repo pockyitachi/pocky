@@ -42,3 +42,127 @@ html, body {
 #menu button:hover {
   background: #f4e3c8;
 }
+
+#chat {
+  position: fixed;
+  right: 16px;
+  bottom: 12px;
+  width: 320px;
+  max-height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 252, 245, 0.97);
+  border: 1px solid #e8d9bd;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(60, 40, 20, 0.2);
+  font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  color: #4a3222;
+  overflow: hidden;
+}
+
+#chat[hidden] {
+  display: none;
+}
+
+#chatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f4e3c8;
+  font-weight: 600;
+}
+
+#chatHeader button {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  color: #4a3222;
+}
+
+#chatLog {
+  flex: 1;
+  min-height: 48px;
+  max-height: 110px;
+  overflow-y: auto;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#chatLog .line.me {
+  color: #7a6a52;
+}
+
+#chatForm {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+}
+
+#chatForm input {
+  flex: 1;
+  border: 1px solid #e8d9bd;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+#chatForm button {
+  border: none;
+  background: #e8a05c;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+#brainSettings {
+  border-top: 1px solid #f0e4cc;
+  padding: 6px 12px 10px;
+}
+
+#brainSettings summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #9a8567;
+}
+
+#brainSettings label {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+#brainSettings input,
+#brainSettings select,
+#brainSettings textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 2px;
+  border: 1px solid #e8d9bd;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+#brainSettings > button {
+  margin-top: 8px;
+  border: none;
+  background: #e8a05c;
+  color: #fff;
+  border-radius: 6px;
+  padding: 5px 14px;
+  cursor: pointer;
+}
+
+#brainSettings .hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: #9a8567;
+}
