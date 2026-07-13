@@ -1,0 +1,11 @@
+{
+  "name": "pocky-model-viewer",
+  "version": "0.1.0",
+  "description": "Pocky 3D 模型预览器：拖入 GLB 查看模型和动画",
+  "scripts": {
+    "start": "node serve.js"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  }
+}

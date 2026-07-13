@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<title>Pocky 3D 模型预览器</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden;
+    font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  body { background: linear-gradient(#3d4a5c, #232b36); color: #eee; }
+  #app { width: 100%; height: 100%; }
+  #drop {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 12px;
+    color: #cdd6e0; pointer-events: none; text-align: center;
+  }
+  #drop h1 { font-size: 20px; font-weight: 600; margin: 0; }
+  #drop p { margin: 0; font-size: 13px; color: #8a97a5; }
+  #drop.hidden { display: none; }
+  #pick { pointer-events: auto; margin-top: 8px; }
+  #clips {
+    position: fixed; left: 12px; bottom: 12px; display: flex; gap: 6px;
+    flex-wrap: wrap; max-width: calc(100vw - 24px);
+  }
+  #clips button {
+    border: 1px solid #5b6b7d; background: rgba(30, 38, 48, 0.85); color: #dfe7ef;
+    border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer;
+  }
+  #clips button.active { background: #e8a05c; border-color: #e8a05c; color: #fff; }
+  #info { position: fixed; top: 10px; left: 12px; font-size: 12px; color: #8a97a5; }
+  #dragover {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(232, 160, 92, 0.15); border: 3px dashed #e8a05c; font-size: 18px;
+  }
+  body.dragging #dragover { display: flex; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./node_modules/three/build/three.module.js",
+    "three/addons/": "./node_modules/three/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="drop">
+  <h1>🐕 Pocky 3D 模型预览器</h1>
+  <p>把 Tripo / Meshy / 混元 3D 导出的 <b>GLB</b> 文件拖到这里</p>
+  <p>左键旋转 · 滚轮缩放 · 右键平移 · 左下角切换动画</p>
+  <input id="pick" type="file" accept=".glb,.gltf" />
+</div>
+<div id="dragover">松手加载模型</div>
+<div id="clips"></div>
+<div id="info"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const app = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(innerWidth, innerHeight);
+app.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.01, 100);
+camera.position.set(2.2, 1.4, 2.6);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.2));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.position.set(3, 5, 4);
+scene.add(sun);
+const ground = new THREE.GridHelper(10, 20, 0x5b6b7d, 0x39434f);
+scene.add(ground);
+
+const loader = new GLTFLoader();
+const clock = new THREE.Clock();
+let mixer = null;
+let current = null;
+let actions = [];
+
+function setModel(gltf) {
+  if (current) scene.remove(current);
+  current = gltf.scene;
+
+  // 居中 + 归一化大小，站在地面上
+  const box = new THREE.Box3().setFromObject(current);
+  const size = box.getSize(new THREE.Vector3());
+  const scale = 1.6 / Math.max(size.x, size.y, size.z);
+  current.scale.setScalar(scale);
+  const box2 = new THREE.Box3().setFromObject(current);
+  const center = box2.getCenter(new THREE.Vector3());
+  current.position.x -= center.x;
+  current.position.z -= center.z;
+  current.position.y -= box2.min.y;
+  scene.add(current);
+
+  // 动画
+  const clipsBar = document.getElementById('clips');
+  clipsBar.innerHTML = '';
+  actions = [];
+  mixer = null;
+  if (gltf.animations.length) {
+    mixer = new THREE.AnimationMixer(current);
+    gltf.animations.forEach((clip, i) => {
+      const action = mixer.clipAction(clip);
+      actions.push(action);
+      const btn = document.createElement('button');
+      btn.textContent = clip.name || `动画 ${i + 1}`;
+      btn.addEventListener('click', () => play(i));
+      clipsBar.appendChild(btn);
+    });
+    play(0);
+  }
+  document.getElementById('drop').classList.add('hidden');
+  document.getElementById('info').textContent =
+    `网格 ${countMeshes(current)} 个 · 动画 ${gltf.animations.length} 个`;
+}
+
+function countMeshes(obj) {
+  let n = 0;
+  obj.traverse((o) => { if (o.isMesh) n++; });
+  return n;
+}
+
+function play(i) {
+  actions.forEach((a, j) => (j === i ? a.reset().play() : a.stop()));
+  [...document.querySelectorAll('#clips button')].forEach((b, j) =>
+    b.classList.toggle('active', j === i));
+}
+
+function loadArrayBuffer(buf, name = 'model') {
+  loader.parse(buf, '', setModel, (err) => {
+    alert(`加载失败：${err.message || err}`);
+  });
+}
+
+// 拖拽 / 选择文件
+addEventListener('dragover', (e) => { e.preventDefault(); document.body.classList.add('dragging'); });
+addEventListener('dragleave', () => document.body.classList.remove('dragging'));
+addEventListener('drop', async (e) => {
+  e.preventDefault();
+  document.body.classList.remove('dragging');
+  const file = e.dataTransfer.files[0];
+  if (file) loadArrayBuffer(await file.arrayBuffer(), file.name);
+});
+document.getElementById('pick').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (file) loadArrayBuffer(await file.arrayBuffer(), file.name);
+});
+
+// 若存在 pocky.glb 则自动加载（把模型放在 viewer/ 目录下即可）
+fetch('./pocky.glb').then(async (r) => {
+  if (r.ok) loadArrayBuffer(await r.arrayBuffer(), 'pocky.glb');
+}).catch(() => {});
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+renderer.setAnimationLoop(() => {
+  controls.update();
+  if (mixer) mixer.update(clock.getDelta());
+  renderer.render(scene, camera);
+});
+
+// 供自动化测试使用
+window.viewer = { loadArrayBuffer, get meshCount() { return current ? countMeshes(current) : 0; } };
+</script>
+</body>
+</html>
